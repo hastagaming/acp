@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "include/**"
+      - "Makefile"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "include/**"
+      - "Makefile"
+
+jobs:
+  compile-check:
+    name: Compile check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Build with gcc
+        run: |
+          make clean
+          make CC=gcc CFLAGS="-Wall -Wextra -Werror -O2 -std=c11"
+
+      - name: Smoke test
+        run: |
+          ./acp --version
+          ./acp --help
+
+      - name: Build with clang
+        run: |
+          make clean
+          make CC=clang CFLAGS="-Wall -Wextra -Werror -O2 -std=c11"
+          ./acp --version

@@ -1,0 +1,5 @@
+acp
+*.o
+*.out
+build/
+*.deb
