@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build (${{ matrix.arch }})
+  build-termux:
+    name: Build Termux (${{ matrix.arch }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -37,6 +37,10 @@ jobs:
       - name: Pull Termux Docker image
         run: docker pull termux/termux-docker:${{ matrix.docker_tag }}
 
+      # This builds inside the official termux/termux-docker image, linking
+      # against Termux's own Bionic libc toolchain. The resulting binary is
+      # compatible with real Termux installs on Android, which a binary
+      # built directly on the ubuntu-latest host (glibc) would NOT be.
       - name: Build ACP natively inside Termux container
         run: |
           docker run --rm \
@@ -52,19 +56,57 @@ jobs:
               file ./acp
               ./acp --version
               mkdir -p dist
-              cp ./acp "dist/acp-${{ matrix.arch }}"
+              cp ./acp "dist/acp-termux-${{ matrix.arch }}"
             '
 
-      - name: Upload build artifact
+      - name: Upload Termux build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: acp-${{ matrix.arch }}
-          path: dist/acp-${{ matrix.arch }}
+          name: acp-termux-${{ matrix.arch }}
+          path: dist/acp-termux-${{ matrix.arch }}
+          if-no-files-found: error
+
+  build-linux-desktop:
+    name: Build Linux desktop (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # This builds directly on the GitHub-hosted Ubuntu runner using its
+      # native gcc/glibc toolchain. The resulting binary targets regular
+      # Linux desktops/servers (Ubuntu, Debian, etc.) and will NOT run on
+      # Termux/Android, since Termux uses Bionic libc instead of glibc.
+      - name: Build ACP natively on Ubuntu
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gcc make
+          make clean
+          make CC=gcc CFLAGS="-Wall -Wextra -O2 -std=c11"
+          file ./acp
+          ./acp --version
+          mkdir -p dist
+          cp ./acp "dist/acp-linux-${{ matrix.arch }}"
+
+      - name: Upload Linux desktop build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: acp-linux-${{ matrix.arch }}
+          path: dist/acp-linux-${{ matrix.arch }}
           if-no-files-found: error
 
   release:
     name: Publish release
-    needs: build
+    needs: [build-termux, build-linux-desktop]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
