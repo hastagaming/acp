@@ -37,26 +37,38 @@ jobs:
       - name: Pull Termux Docker image
         run: docker pull termux/termux-docker:${{ matrix.docker_tag }}
 
+      - name: Prepare output directory
+        run: mkdir -p "${{ github.workspace }}/dist"
+
       # This builds inside the official termux/termux-docker image, linking
       # against Termux's own Bionic libc toolchain. The resulting binary is
       # compatible with real Termux installs on Android, which a binary
       # built directly on the ubuntu-latest host (glibc) would NOT be.
+      #
+      # The repo is mounted read-only at /mnt/src; the container copies it
+      # into its own $HOME first and builds there, since the mounted path
+      # is owned by the GitHub runner's UID and the Termux container user
+      # cannot write into it directly (this previously caused
+      # "ld.lld: error: cannot open output file acp: Permission denied").
+      # Only the final binary is copied back out, into /mnt/out which is
+      # mounted read-write.
       - name: Build ACP natively inside Termux container
         run: |
           docker run --rm \
-            -v "${{ github.workspace }}:/home/builder/acp" \
+            -v "${{ github.workspace }}:/mnt/src:ro" \
+            -v "${{ github.workspace }}/dist:/mnt/out" \
             termux/termux-docker:${{ matrix.docker_tag }} \
             bash -lc '
               set -e
               pkg update -y
               pkg install -y clang make git
-              cd /home/builder/acp
+              cp -r /mnt/src "$HOME/acp-build"
+              cd "$HOME/acp-build"
               make clean
               make CC=clang CFLAGS="-Wall -Wextra -O2 -std=c11"
               file ./acp
               ./acp --version
-              mkdir -p dist
-              cp ./acp "dist/acp-termux-${{ matrix.arch }}"
+              cp ./acp "/mnt/out/acp-termux-${{ matrix.arch }}"
             '
 
       - name: Upload Termux build artifact
