@@ -63,7 +63,7 @@ jobs:
       - name: Build ACP natively inside Termux container
         run: |
           docker run \
-            --name acp-build-${{ matrix.arch }} \
+            --name acp-build-${{ matrix.docker_tag }} \
             -v "${{ github.workspace }}:/mnt/src:ro" \
             termux/termux-docker:${{ matrix.docker_tag }} \
             bash -lc '
@@ -76,12 +76,12 @@ jobs:
               make CC=clang CFLAGS="-Wall -Wextra -O2 -std=c11"
               ls -la ./acp
               ./acp --version
-              pwd > /tmp/acp-build-${{ matrix.arch }}
+              pwd > /tmp/acp-build-${{ matrix.docker_tag }}
             '
-          BUILD_DIR="$(docker exec "acp-build-${{ matrix.arch }}" cat /tmp/acp-build-dir.txt)"
+          BUILD_DIR="$(docker exec "acp-build-${{ matrix.docker_tag }}" cat /tmp/acp-build-${{ matrix.docker_tag }})"
           docker cp \
             "acp-build-${{ matrix.arch }}:${BUILD_DIR}/acp" \
-            "${{ github.workspace }}/dist/acp-termux-${{ matrix.arch }}"
+            "${{ github.workspace }}/dist/acp-termux-${{ matrix.docker_tag }}"
 
       - name: Remove build container
         if: always()
