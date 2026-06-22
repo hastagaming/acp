@@ -50,13 +50,21 @@ jobs:
       # is owned by the GitHub runner's UID and the Termux container user
       # cannot write into it directly (this previously caused
       # "ld.lld: error: cannot open output file acp: Permission denied").
-      # Only the final binary is copied back out, into /mnt/out which is
-      # mounted read-write.
+      #
+      # The built binary is then extracted with "docker cp" from the host
+      # side (after the container exits) instead of writing into a bind
+      # mount from inside the container, since writing into a mount from
+      # inside a QEMU-emulated container (needed for aarch64/arm) hit the
+      # same UID mismatch even when the mount was read-write. The absolute
+      # path to the binary inside the container is resolved dynamically
+      # with "pwd" instead of assuming a hardcoded Termux $HOME path, since
+      # that path is an implementation detail of the Docker image that
+      # could differ between tags or future versions.
       - name: Build ACP natively inside Termux container
         run: |
-          docker run --rm \
+          docker run \
+            --name acp-build-${{ matrix.arch }} \
             -v "${{ github.workspace }}:/mnt/src:ro" \
-            -v "${{ github.workspace }}/dist:/mnt/out" \
             termux/termux-docker:${{ matrix.docker_tag }} \
             bash -lc '
               set -e
@@ -68,8 +76,16 @@ jobs:
               make CC=clang CFLAGS="-Wall -Wextra -O2 -std=c11"
               ls -la ./acp
               ./acp --version
-              cp ./acp "/mnt/out/acp-termux-${{ matrix.arch }}"
+              pwd > /tmp/acp-build-dir.txt
             '
+          BUILD_DIR="$(docker exec "acp-build-${{ matrix.arch }}" cat /tmp/acp-build-dir.txt)"
+          docker cp \
+            "acp-build-${{ matrix.arch }}:${BUILD_DIR}/acp" \
+            "${{ github.workspace }}/dist/acp-termux-${{ matrix.arch }}"
+
+      - name: Remove build container
+        if: always()
+        run: docker rm -f "acp-build-${{ matrix.arch }}" || true
 
       - name: Upload Termux build artifact
         uses: actions/upload-artifact@v4
