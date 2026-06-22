@@ -76,7 +76,7 @@ jobs:
               make CC=clang CFLAGS="-Wall -Wextra -O2 -std=c11"
               ls -la ./acp
               ./acp --version
-              pwd > /tmp/acp-build-dir.txt
+              pwd > /tmp/acp-build-${{ matrix.arch }}
             '
           BUILD_DIR="$(docker exec "acp-build-${{ matrix.arch }}" cat /tmp/acp-build-dir.txt)"
           docker cp \
