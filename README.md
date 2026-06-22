@@ -1,157 +1,221 @@
-# ACP (Add Commit Push)
+# ACP — Add Commit Push
 
-A simple CLI tool that turns:
+[
+
+![CI](https://img.shields.io/github/actions/workflow/status/hastagaming/acp/ci.yml?branch=main&label=CI)
+
+](https://github.com/hastagaming/acp/actions/workflows/ci.yml)
+[
+
+![Release](https://img.shields.io/github/v/release/hastagaming/acp?label=release)
+
+](https://github.com/hastagaming/acp/releases)
+[
+
+![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
+
+](LICENSE)
+[
+
+![Termux](https://img.shields.io/badge/platform-Termux%20%7C%20Linux-success)
+
+](#installation)
+
+A tiny CLI tool that turns this:
 
 \`\`\`
 git add . && git commit -m "message" && git push
 \`\`\`
 
-into:
+into this:
 
 \`\`\`
 acp "message"
 \`\`\`
 
-Written in pure C, with no external dependency besides `git` itself (which is what actually runs behind the scenes). Built for Termux (Android ARM64) and Linux in general.
+Written in pure C. No external dependency besides `git` itself, which is
+what actually runs behind the scenes. Built for Termux on Android and for
+Linux in general.
 
-## License
+<p align="center">
+  <img src="assets/acp_demo.cast" alt="ACP terminal demo: core command, show mode, and security check" width="700">
+</p>
 
-Apache License 2.0. See [LICENSE](./LICENSE).
+<p align="center"><sub>Real terminal output — core command, <code>-s</code> show mode, and <code>--check</code> security scan.</sub></p>
+
+---
+
+## Contents
+
+- [Why](#why)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Behavior details](#behavior-details)
+- [Project structure](#project-structure)
+- [Continuous integration and releases](#continuous-integration-and-releases)
+- [Publishing to TUR](#publishing-to-tur-termux-user-repository)
+
+## Why
+
+Typing `git add . && git commit -m "..." && git push` dozens of times a day
+gets old fast, especially on a phone keyboard in Termux. ACP collapses that
+into one short command, while staying out of the way:
+
+- No setup wizard, no interactive prompts beyond what's strictly needed.
+- No AI features, no telemetry, no extra dependencies.
+- Detects your current branch automatically — no need to type it.
+- Understands `.gitignore` and skips ignored files instead of failing.
+- Catches accidental commits of `.env` files, secrets, or huge binaries
+  before they reach your remote.
 
 ## Installation
 
-Make sure `gcc` (or `clang`) and `git` are installed:
+### Option A — build from source
 
-\`\`\`
-pkg install clang git
+Requires `gcc` (or `clang`) and `git`:
+
+\`\`\`bash
+pkg install clang git      # Termux
+# or: sudo apt install gcc git    (Linux desktop)
 \`\`\`
 
-Then run:
+Then:
 
-\`\`\`
+\`\`\`bash
 chmod +x install.sh
 ./install.sh
 \`\`\`
 
-The binary will be installed at `$PREFIX/bin/acp`, so it can be called from anywhere.
+This compiles ACP and installs the binary to `$PREFIX/bin/acp`, so it can
+be called from anywhere.
 
-### Manual build (without install.sh)
+<details>
+<summary>Manual build, without install.sh</summary>
 
-\`\`\`
+\`\`\`bash
 make
 ./acp "commit message"
 \`\`\`
+</details>
 
-### Install a precompiled binary (no compiler needed)
+### Option B — install a precompiled binary
 
-Every tagged release publishes precompiled binaries for `aarch64`, `arm`,
-and `x86_64` (see "Continuous Integration and Releases" below). To install
-one directly:
+Every tagged release publishes ready-to-run binaries for two separate,
+**non-interchangeable** targets:
 
-\`\`\`
+| Target | Architectures | Linked against | Runs on |
+|---|---|---|---|
+| Termux | `aarch64`, `arm`, `x86_64` | Bionic libc | Real Termux/Android installs |
+| Linux desktop | `x86_64`, `aarch64` | glibc | Ubuntu, Debian, and similar |
+
+\`\`\`bash
 chmod +x install-prebuilt.sh
 ./install-prebuilt.sh
 \`\`\`
 
-This downloads the binary matching your device's architecture from the
-latest GitHub Release, verifies its SHA-256 checksum, and installs it to
-`$PREFIX/bin/acp`.
+The script detects whether it's running inside Termux or a regular Linux
+environment, downloads the binary matching your architecture from the
+latest GitHub Release, verifies its SHA-256 checksum, and installs it.
 
 ## Usage
 
 ### Core command
 
-\`\`\`
+\`\`\`bash
 acp "fix login bug"
 \`\`\`
 
-This runs:
+Runs, in order:
+
 1. `git add .`
 2. `git commit -m "fix login bug"`
-3. `git push origin <current-branch>` (branch is detected automatically)
+3. `git push origin <current-branch>` — branch detected automatically
 
-### Configure a remote per repository
+### Show what will run, before running it
 
-\`\`\`
-acp --remote "https://github.com/user/repo.git"
-\`\`\`
-
-The remote is saved to `.git/acp.conf` and applied directly via `git remote`.
-
-### Show mode
-
-\`\`\`
+\`\`\`bash
 acp -s "update readme"
 \`\`\`
 
-Prints the git commands that will run before they are actually executed.
+### Set the remote for this repository
+
+```bash
+acp --remote "https://github.com/user/repo.git"
+```
+
+Saved to `.git/acp.conf` (per-repository) and applied via `git remote`.
 
 ### Safe mode
 
-\`\`\`
+\`\`\`bash
 acp --safe "important change"
 \`\`\`
 
-Blocks force push and warns if the active branch is `main` or `master`.
+Blocks force push, and warns if the active branch is `main` or `master`.
 
-### Security check
+### Scan for sensitive files before committing
 
-\`\`\`
+\`\`\`bash
 acp --check
 \`\`\`
 
-Scans the project folder for:
+Flags:
 - `.env` files
-- Secret/token/API key patterns inside text/source files
-- Suspiciously large files (configurable, default 50MB)
+- likely secrets/tokens/API keys inside source or text files
+- suspiciously large files (configurable, default 50MB)
 
-### Check installed version
+### Check the installed version
 
-\`\`\`
+\`\`\`bash
 acp --version
 \`\`\`
 
 ## Configuration
 
-`config/default.conf` holds global default values, separate from the
-per-repository remote stored in `.git/acp.conf`. After installation it is
-copied to `$PREFIX/etc/acp/default.conf`, and `acp` reads it on every run.
-If the file is missing or a key is absent, ACP falls back to its built-in
-defaults, so the file is optional.
+`config/default.conf` holds global defaults, separate from the
+per-repository remote in `.git/acp.conf`. It's installed to
+`$PREFIX/etc/acp/default.conf` and read on every run — if it's missing or a
+key is absent, ACP just falls back to its built-in defaults, so the file is
+entirely optional.
 
-\`\`\`
+\`\`\`ini
 DEFAULT_BRANCH_FALLBACK=main
 LARGE_FILE_WARNING_MB=50
 \`\`\`
 
-- `DEFAULT_BRANCH_FALLBACK`: branch name used when the current branch
-  cannot be detected from git (for example, a detached HEAD), instead of
-  the hardcoded value `main`.
-- `LARGE_FILE_WARNING_MB`: file size threshold, in megabytes, above which
-  `acp --check` flags a file as suspiciously large.
+| Key | Used for |
+|---|---|
+| `DEFAULT_BRANCH_FALLBACK` | Branch name used when the current branch can't be detected (e.g. detached HEAD), instead of a hardcoded value |
+| `LARGE_FILE_WARNING_MB` | Size threshold, in MB, above which `acp --check` flags a file |
 
-To change a default permanently, edit `$PREFIX/etc/acp/default.conf`
-directly; no wizard or interactive setup is involved.
+Edit `$PREFIX/etc/acp/default.conf` directly to change a default
+permanently — no wizard involved.
 
-## .gitignore handling
+## Behavior details
 
-- If normal files are mixed with ignored files, the ignored files are skipped automatically and ACP still proceeds to commit the normal files, printing a warning listing what was skipped.
-- If every detected file is ignored, the commit is cancelled with:
+**`.gitignore` handling**
+- Ignored files mixed with normal files: ignored ones are skipped
+  automatically, the rest still gets committed, and a warning lists what
+  was skipped.
+- Every detected file is ignored: the commit is cancelled with
   `Nothing to commit (all files are ignored).`
 
-## Auto-init repository
-
-If run inside a folder that is not yet a git repository, ACP asks:
-
+**Auto-init**
+If run outside a git repository, ACP asks before doing anything:
 \`\`\`
 Not a git repository. Initialize now? (y/n)
 \`\`\`
 
-Answer `y` to run `git init`, or `n` to cancel.
+**Error reporting**
+Every git failure is reported with: the stage that failed (add / commit /
+push), the exit code, the current folder, the raw git output, and a
+plain-language hint about the likely cause and fix.
 
-## Error handling
-
-Every git failure is reported with a clear format: stage (add/commit/push), exit code, current folder, the raw git output, and a plain-language hint about the likely cause and fix.
+**Safety**
+File names with spaces or special characters are handled safely, since the
+internal command always uses `git add .` rather than iterating over
+individual file names.
 
 ## Project structure
 
@@ -162,90 +226,87 @@ ACP/
 │   ├── git.c        Git operation wrappers (add, commit, push, branch)
 │   ├── parser.c     CLI argument parsing
 │   ├── remote.c     Save/load remote from .git/acp.conf
-│   ├── safety.c     Safe mode and security scanning (.env, secrets, large files)
+│   ├── safety.c     Safe mode and security scanning
 │   ├── ignore.c     Analysis of git-ignored files
 │   ├── error.c      Error message formatting
 │   └── config.c     Reads $PREFIX/etc/acp/default.conf
 ├── include/
 │   └── common.h     Shared header (structs, function declarations)
 ├── config/
-│   └── default.conf Global default values (copied to $PREFIX/etc/acp/)
+│   └── default.conf Global default values
 ├── docs/
-│   └── README.md
-├── .github/
-│   └── workflows/
-│       ├── ci.yml             Compile check on every push/PR
-│       └── build-release.yml  Native build per arch + GitHub Release
+│   ├── README.md
+│   └── assets/      Demo GIF and other docs media
+├── .github/workflows/
+│   ├── ci.yml             Compile check on every push/PR
+│   └── build-release.yml  Native build per target + GitHub Release
 ├── Makefile
 ├── install.sh
 ├── install-prebuilt.sh
+├── build.sh             TUR/termux-packages recipe
 ├── LICENSE
 ├── CHANGELOG.md
 └── README.md
 \`\`\`
 
-## Notes
+## Continuous integration and releases
 
-- No AI features, no setup wizard, no verbose mode.
-- Every git operation is run through the system's own `git` binary.
-- Safe for file names with spaces and special characters, since the internal command always uses `git add .` rather than iterating over individual file names.
+Two GitHub Actions workflows live under `.github/workflows/`, both running
+on GitHub-hosted runners:
 
-## Continuous Integration and Releases
+- **`ci.yml`** — every push/PR to `main` touching `src/`, `include/`, or
+  `Makefile`. Compiles with both `gcc` and `clang` (`-Wall -Wextra
+  -Werror`) and smoke-tests the binary. Fast feedback while developing.
 
-This repository ships two GitHub Actions workflows under `.github/workflows/`:
+- **`build-release.yml`** — on `workflow_dispatch`, on PRs to `main`, and
+  on any pushed tag matching `v*.*.*`. Builds two non-interchangeable sets
+  of binaries in parallel:
 
-- **`ci.yml`** — runs on every push/PR to `main` that touches `src/`, `include/`,
-  or `Makefile`. Compiles with both `gcc` and `clang` using `-Wall -Wextra -Werror`
-  and runs a basic smoke test (`acp --version`, `acp --help`). This is the fast
-  feedback loop while developing.
+  - `build-termux`: builds natively inside the official
+    `termux/termux-docker` image for `aarch64`, `arm`, `x86_64` (QEMU for
+    the non-x86_64 architectures). Output linked against Bionic libc.
+  - `build-linux-desktop`: builds natively on `ubuntu-latest` (x86_64) and
+    `ubuntu-24.04-arm` (native arm64, no emulation). Output linked against
+    glibc.
 
-- **`build-release.yml`** — runs on `workflow_dispatch`, on PRs to `main`, and
-  on any pushed tag matching `v*.*.*`. For each Termux architecture
-  (`aarch64`, `arm`, `x86_64`) it pulls the official `termux/termux-docker`
-  image, installs `clang`/`make` inside it, and compiles ACP **natively**
-  inside that Termux environment (using QEMU for the non-native architectures
-  on the GitHub-hosted runner). The resulting binaries are uploaded as
-  workflow artifacts, and when triggered by a tag push, they are also
-  attached to a GitHub Release automatically, alongside a `.sha256` checksum
-  file for each binary.
+  Both are uploaded as workflow artifacts, and on a tag push, attached
+  automatically to a GitHub Release with a `.sha256` checksum each.
 
-To cut a new release:
+To cut a release:
 
-\`\`\`
+\`\`\`bash
 git tag v1.0.0
 git push origin v1.0.0
 \`\`\`
 
-The workflow will build `acp-aarch64`, `acp-arm`, and `acp-x86_64`, then
-publish them under the `v1.0.0` GitHub Release.
+This builds all five binaries (`acp-termux-aarch64`, `acp-termux-arm`,
+`acp-termux-x86_64`, `acp-linux-x86_64`, `acp-linux-aarch64`) and publishes
+them under the `v1.0.0` GitHub Release.
 
-Note: cross-architecture builds run under QEMU emulation on the GitHub-hosted
-x86_64 runner, so `aarch64` and `arm` jobs are slower than the native
-`x86_64` job — this is expected and not a failure.
+> The Termux `aarch64`/`arm` jobs run under QEMU emulation, so they take
+> noticeably longer than the others — that's expected, not a failure.
 
 ## Publishing to TUR (Termux User Repository)
 
-This repository contains the ACP source code and CI/release automation.
-The Termux packaging recipe (`build.sh`) lives in a separate repository — the
-[TUR](https://github.com/termux-user-repository/tur) fork — under
-`packages/acp/build.sh`. Per TUR/termux-packages conventions, the recipe
-builds from the source tarball of a tagged release (not from a raw binary),
-since `TERMUX_PKG_SRCURL` must point to an extractable archive. To publish
-a new version:
+The Termux packaging recipe (`build.sh`) is meant to live in a separate
+repository — your [TUR](https://github.com/termux-user-repository/tur)
+fork, under `packages/acp/build.sh`. Per TUR conventions, it builds from
+the source tarball of a tagged release (not from a raw binary), since
+`TERMUX_PKG_SRCURL` must point to an extractable archive.
 
-1. Tag and push a release in this repository:
-   \`\`\`
-   git tag v1.0.0
-   git push origin v1.0.0
-   \`\`\`
-2. Compute the SHA-256 of the generated GitHub source tarball:
-   \`\`\`
+1. Tag and push a release (see above).
+2. Compute the SHA-256 of the source tarball:
+   ```bash
    curl -sL https://github.com/<user>/acp/archive/refs/tags/v1.0.0.tar.gz | sha256sum
-   \`\`\`
+   ```
 3. Update `TERMUX_PKG_SRCURL`, `TERMUX_PKG_SHA256`, and `TERMUX_PKG_VERSION`
-   in `packages/acp/build.sh` inside your TUR fork.
+   in `packages/acp/build.sh` in your TUR fork.
 4. Open a pull request against `termux-user-repository/tur`.
 
-The precompiled binaries produced by `build-release.yml` are a separate,
-faster install path for users outside of TUR (via `install-prebuilt.sh`) —
-they are not used by the TUR recipe itself.
+The precompiled binaries from `build-release.yml` are a separate, faster
+install path outside of TUR (via `install-prebuilt.sh`) — they aren't used
+by the TUR recipe itself.
+
+## License
+
+Apache License 2.0 — see [LICENSE](./LICENSE).
