@@ -1,37 +1,26 @@
 # ACP — Add Commit Push
 
-[
 
-![CI](https://img.shields.io/github/actions/workflow/status/hastagaming/acp/ci.yml?branch=main&label=CI)
+![CI](https://img.shields.io/github/actions/workflow/status/hastagaming/acp/ci.yml?branch=main&label=CI)[(https://github.com/hastagaming/acp/actions/workflows/ci.yml)]
 
-](https://github.com/hastagaming/acp/actions/workflows/ci.yml)
-[
+![Release](https://img.shields.io/github/v/release/hastagaming/acp?label=release)[(https://github.com/hastagaming/acp/releases)]
 
-![Release](https://img.shields.io/github/v/release/hastagaming/acp?label=release)
+![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)[(./LICENSE)]
 
-](https://github.com/hastagaming/acp/releases)
-[
 
-![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
-
-](LICENSE)
-[
-
-![Termux](https://img.shields.io/badge/platform-Termux%20%7C%20Linux-success)
-
-](#installation)
+![Termux](https://img.shields.io/badge/platform-Termux%20%7C%20Linux-success)[(#installation)]
 
 A tiny CLI tool that turns this:
 
-\`\`\`
+```bash
 git add . && git commit -m "message" && git push
-\`\`\`
+```
 
 into this:
 
-\`\`\`
+```acp
 acp "message"
-\`\`\`
+```
 
 Written in pure C. No external dependency besides `git` itself, which is
 what actually runs behind the scenes. Built for Termux on Android and for
@@ -75,17 +64,18 @@ into one short command, while staying out of the way:
 
 Requires `gcc` (or `clang`) and `git`:
 
-\`\`\`bash
-pkg install clang git      # Termux
+```bash
+pkg install clang git
+```
+
 # or: sudo apt install gcc git    (Linux desktop)
-\`\`\`
 
 Then:
 
-\`\`\`bash
+```bash
 chmod +x install.sh
 ./install.sh
-\`\`\`
+```
 
 This compiles ACP and installs the binary to `$PREFIX/bin/acp`, so it can
 be called from anywhere.
@@ -93,10 +83,10 @@ be called from anywhere.
 <details>
 <summary>Manual build, without install.sh</summary>
 
-\`\`\`bash
+```bash
 make
 ./acp "commit message"
-\`\`\`
+```
 </details>
 
 ### Option B — install a precompiled binary
@@ -109,10 +99,10 @@ Every tagged release publishes ready-to-run binaries for two separate,
 | Termux | `aarch64`, `arm`, `x86_64` | Bionic libc | Real Termux/Android installs |
 | Linux desktop | `x86_64`, `aarch64` | glibc | Ubuntu, Debian, and similar |
 
-\`\`\`bash
+```bash
 chmod +x install-prebuilt.sh
 ./install-prebuilt.sh
-\`\`\`
+```
 
 The script detects whether it's running inside Termux or a regular Linux
 environment, downloads the binary matching your architecture from the
@@ -122,9 +112,9 @@ latest GitHub Release, verifies its SHA-256 checksum, and installs it.
 
 ### Core command
 
-\`\`\`bash
+```bash
 acp "fix login bug"
-\`\`\`
+```
 
 Runs, in order:
 
@@ -134,9 +124,9 @@ Runs, in order:
 
 ### Show what will run, before running it
 
-\`\`\`bash
+```bash
 acp -s "update readme"
-\`\`\`
+```
 
 ### Set the remote for this repository
 
@@ -148,17 +138,17 @@ Saved to `.git/acp.conf` (per-repository) and applied via `git remote`.
 
 ### Safe mode
 
-\`\`\`bash
+```bash
 acp --safe "important change"
-\`\`\`
+```
 
 Blocks force push, and warns if the active branch is `main` or `master`.
 
 ### Scan for sensitive files before committing
 
-\`\`\`bash
+```bash
 acp --check
-\`\`\`
+```
 
 Flags:
 - `.env` files
@@ -167,9 +157,9 @@ Flags:
 
 ### Check the installed version
 
-\`\`\`bash
+```bash
 acp --version
-\`\`\`
+```
 
 ## Configuration
 
@@ -179,10 +169,10 @@ per-repository remote in `.git/acp.conf`. It's installed to
 key is absent, ACP just falls back to its built-in defaults, so the file is
 entirely optional.
 
-\`\`\`ini
+```ini
 DEFAULT_BRANCH_FALLBACK=main
 LARGE_FILE_WARNING_MB=50
-\`\`\`
+```
 
 | Key | Used for |
 |---|---|
@@ -203,9 +193,9 @@ permanently — no wizard involved.
 
 **Auto-init**
 If run outside a git repository, ACP asks before doing anything:
-\`\`\`
+```text
 Not a git repository. Initialize now? (y/n)
-\`\`\`
+```
 
 **Error reporting**
 Every git failure is reported with: the stage that failed (add / commit /
@@ -219,7 +209,7 @@ individual file names.
 
 ## Project structure
 
-\`\`\`
+```project structure
 ACP/
 ├── src/
 │   ├── main.c       Entry point and flow orchestration
@@ -247,7 +237,7 @@ ACP/
 ├── LICENSE
 ├── CHANGELOG.md
 └── README.md
-\`\`\`
+```
 
 ## Continuous integration and releases
 
@@ -274,10 +264,10 @@ on GitHub-hosted runners:
 
 To cut a release:
 
-\`\`\`bash
+```bash
 git tag v1.0.0
 git push origin v1.0.0
-\`\`\`
+```
 
 This builds all five binaries (`acp-termux-aarch64`, `acp-termux-arm`,
 `acp-termux-x86_64`, `acp-linux-x86_64`, `acp-linux-aarch64`) and publishes
