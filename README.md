@@ -38,7 +38,7 @@ what actually runs behind the scenes. Built for Termux on Android and for
 Linux in general.
 
 <p align="center">
-  <img src="assets/acp_demo.cast" alt="ACP terminal demo: core command, show mode, and security check" width="700">
+  <img src="assets/acp_demo.gif" alt="ACP terminal demo: core command, show mode, and security check" width="700">
 </p>
 
 <p align="center"><sub>Real terminal output — core command, <code>-s</code> show mode, and <code>--check</code> security scan.</sub></p>
