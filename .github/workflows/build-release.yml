@@ -22,7 +22,7 @@ jobs:
           - arch: arm
             docker_tag: arm
           - arch: x86_64
-            docker_tag: latest
+            docker_tag: x86_64
 
     steps:
       - name: Checkout source
@@ -62,26 +62,26 @@ jobs:
       # could differ between tags or future versions.
       - name: Build ACP natively inside Termux container
         run: |
+          set -e
+          BUILD_PATH="/data/data/com.termux/files/home/acp-build"
           docker run \
-            --name acp-build-${{ matrix.docker_tag }} \
+            --name acp-build-${{ matrix.arch }} \
             -v "${{ github.workspace }}:/mnt/src:ro" \
             termux/termux-docker:${{ matrix.docker_tag }} \
             bash -lc '
               set -e
               pkg update -y
               pkg install -y clang make git
-              cp -r /mnt/src "$HOME/acp-build"
-              cd "$HOME/acp-build"
+              cp -r /mnt/src '${BUILD_PATH}'
+              cd '${BUILD_PATH}'
               make clean
               make CC=clang CFLAGS="-Wall -Wextra -O2 -std=c11"
               ls -la ./acp
               ./acp --version
-              pwd > /tmp/acp-build-${{ matrix.docker_tag }}
             '
-          BUILD_DIR="$(docker exec "acp-build-${{ matrix.docker_tag }}" cat /tmp/acp-build-${{ matrix.docker_tag }})"
           docker cp \
-            "acp-build-${{ matrix.arch }}:${BUILD_DIR}/acp" \
-            "${{ github.workspace }}/dist/acp-termux-${{ matrix.docker_tag }}"
+            "acp-build-${{ matrix.arch }}:${BUILD_PATH}/acp" \
+            "${{ github.workspace }}/dist/acp-termux-${{ matrix.arch }}"
 
       - name: Remove build container
         if: always()
