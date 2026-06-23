@@ -101,3 +101,54 @@ int git_push(const char *branch, int safe_mode, char *output, size_t output_size
     int rc = util_run_command(cmd, output, output_size);
     return rc;
 }
+
+/* Reads the file-level changes (added / removed) introduced by the most
+   recent commit (HEAD), using "git show --name-status". This single
+   command works correctly even for the very first commit in a repo,
+   unlike a diff against HEAD~1 which would fail in that case since no
+   parent commit exists yet.
+
+   Only files with status 'A' (added) or 'D' (deleted) are recorded.
+   Modified files ('M') and renames ('R...') are intentionally skipped,
+   since they don't represent a pure addition or removal. */
+int git_get_last_commit_changes(CommitFileChanges *changes) {
+    changes->added_count = 0;
+    changes->removed_count = 0;
+
+    char output[ACP_MAX_LINE * 4];
+    int rc = util_run_command("git show --name-status --format=\"\" HEAD",
+                               output, sizeof(output));
+    if (rc != 0) {
+        return rc;
+    }
+
+    char *line = output;
+    while (line && *line) {
+        char *line_end = strchr(line, '\n');
+        size_t line_len = line_end ? (size_t)(line_end - line) : strlen(line);
+
+        if (line_len >= 2 && line[1] == '\t') {
+            char status = line[0];
+            const char *filename = line + 2;
+            size_t name_len = line_len - 2;
+
+            if (status == 'A' && changes->added_count < 256 && name_len > 0) {
+                size_t copy_len = name_len < ACP_MAX_PATH - 1 ? name_len : ACP_MAX_PATH - 1;
+                memcpy(changes->added_files[changes->added_count], filename, copy_len);
+                changes->added_files[changes->added_count][copy_len] = '\0';
+                changes->added_count++;
+            } else if (status == 'D' && changes->removed_count < 256 && name_len > 0) {
+                size_t copy_len = name_len < ACP_MAX_PATH - 1 ? name_len : ACP_MAX_PATH - 1;
+                memcpy(changes->removed_files[changes->removed_count], filename, copy_len);
+                changes->removed_files[changes->removed_count][copy_len] = '\0';
+                changes->removed_count++;
+            }
+            /* Any other status (M, R100, C100, etc.) is intentionally
+               not recorded here. */
+        }
+
+        line = line_end ? line_end + 1 : NULL;
+    }
+
+    return 0;
+}

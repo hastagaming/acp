@@ -6,6 +6,16 @@
 #define ACP_MAX_LINE 8192
 #define ACP_MAX_CMD 8192
 
+/* ANSI color codes for terminal output. Used only when stdout is an
+   actual terminal (see util_color_enabled), so output piped to a file
+   or another program stays clean. */
+#define ACP_COLOR_GREEN   "\033[32m"
+#define ACP_COLOR_CYAN    "\033[36m"
+#define ACP_COLOR_RED     "\033[31m"
+#define ACP_COLOR_YELLOW  "\033[33m"
+#define ACP_COLOR_RESET   "\033[0m"
+#define ACP_BOLD          "\033[1m"
+
 typedef struct {
     const char *commit_message;
     const char *remote_url;
@@ -47,6 +57,15 @@ int git_current_branch(char *branch_out, size_t branch_size);
 int git_has_staged_changes(void);
 int git_has_commits(void);
 
+typedef struct {
+    int added_count;
+    int removed_count;
+    char added_files[256][ACP_MAX_PATH];
+    char removed_files[256][ACP_MAX_PATH];
+} CommitFileChanges;
+
+int git_get_last_commit_changes(CommitFileChanges *changes);
+
 /* parser.c */
 int parser_parse(int argc, char **argv, AcpOptions *opts);
 void parser_print_usage(void);
@@ -83,6 +102,7 @@ int util_run_command_silent(const char *cmd);
 void util_trim_newline(char *str);
 int util_file_exists(const char *path);
 long util_file_size(const char *path);
+int util_color_enabled(void);
 
 /* config.c */
 typedef struct {

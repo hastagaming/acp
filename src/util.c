@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include "../include/common.h"
 
 int util_run_command(const char *cmd, char *output, size_t output_size) {
@@ -74,4 +75,12 @@ long util_file_size(const char *path) {
         return -1;
     }
     return (long)st.st_size;
+}
+
+int util_color_enabled(void) {
+    /* Only emit ANSI color codes when stdout is an actual terminal.
+       When ACP's output is piped or redirected (e.g. into a log file
+       or another tool), colors would show up as garbled escape codes,
+       so they are disabled automatically in that case. */
+    return isatty(STDOUT_FILENO);
 }

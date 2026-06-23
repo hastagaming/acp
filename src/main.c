@@ -97,14 +97,38 @@ static int run_acp_flow(AcpOptions *opts) {
         error_report(STAGE_COMMIT, rc, output);
         return rc;
     }
-    printf("Commit successful: \"%s\"\n", opts->commit_message);
+
+    int use_color = util_color_enabled();
+    const char *green = use_color ? ACP_COLOR_GREEN : "";
+    const char *red = use_color ? ACP_COLOR_RED : "";
+    const char *cyan = use_color ? ACP_COLOR_CYAN : "";
+    const char *reset = use_color ? ACP_COLOR_RESET : "";
+
+    printf("%sCommit successful:%s \"%s\"\n", green, reset, opts->commit_message);
+
+    CommitFileChanges changes;
+    git_get_last_commit_changes(&changes);
+
+    if (changes.added_count > 0) {
+        printf("%sAdded:%s\n", green, reset);
+        for (int i = 0; i < changes.added_count; i++) {
+            printf("  %s\n", changes.added_files[i]);
+        }
+    }
+
+    if (changes.removed_count > 0) {
+        printf("%sDeleted:%s\n", red, reset);
+        for (int i = 0; i < changes.removed_count; i++) {
+            printf("  %s\n", changes.removed_files[i]);
+        }
+    }
 
     rc = git_push(branch, opts->safe_mode, output, sizeof(output));
     if (rc != 0) {
         error_report(STAGE_PUSH, rc, output);
         return rc;
     }
-    printf("Push successful to origin/%s\n", branch);
+    printf("%sPush to%s origin/%s\n", cyan, reset, branch);
 
     return 0;
 }
