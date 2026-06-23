@@ -62,8 +62,11 @@ Requires `gcc` (or `clang`) and `git`:
 ```bash
 pkg install clang git
 ```
-
-# or: sudo apt install gcc git    (Linux desktop)
+or:
+```bash
+sudo apt install gcc git
+```
+(Linux desktop)
 
 Then:
 
