@@ -19,8 +19,6 @@ jobs:
         include:
           - arch: aarch64
             docker_tag: aarch64
-          - arch: arm
-            docker_tag: arm
           - arch: x86_64
             docker_tag: x86_64
 
