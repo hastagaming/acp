@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -O2 -std=c11
 TARGET = acp
 SRC_DIR = src
-SOURCES = $(SRC_DIR)/main.c $(SRC_DIR)/git.c $(SRC_DIR)/parser.c $(SRC_DIR)/remote.c $(SRC_DIR)/safety.c $(SRC_DIR)/ignore.c $(SRC_DIR)/error.c $(SRC_DIR)/util.c $(SRC_DIR)/config.c
+SOURCES = $(SRC_DIR)/main.c $(SRC_DIR)/git.c $(SRC_DIR)/parser.c $(SRC_DIR)/remote.c $(SRC_DIR)/safety.c $(SRC_DIR)/ignore.c $(SRC_DIR)/error.c $(SRC_DIR)/util.c $(SRC_DIR)/config.c $(SRC_DIR)/tag.c
 
 all: $(TARGET)
 

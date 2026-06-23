@@ -130,6 +130,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    if (parse_result == -4) {
+        error_fatal("This tag flag requires a tag name. Example: acp --tag \"v1.0.0\"");
+        return 1;
+    }
+
     if (opts.version_mode) {
         printf("ACP (Add Commit Push) v%s\n", ACP_VERSION);
         return 0;
@@ -142,6 +147,22 @@ int main(int argc, char **argv) {
 
     if (opts.has_remote_arg) {
         return remote_save(opts.remote_url) == 0 ? 0 : 1;
+    }
+
+    if (opts.tag_create_mode) {
+        return tag_create(opts.tag_name) == 0 ? 0 : 1;
+    }
+
+    if (opts.tag_remove_mode) {
+        return tag_remove(opts.tag_name) == 0 ? 0 : 1;
+    }
+
+    if (opts.tag_push_mode) {
+        return tag_push(opts.tag_name) == 0 ? 0 : 1;
+    }
+
+    if (opts.tag_remove_push_mode) {
+        return tag_remove_push(opts.tag_name) == 0 ? 0 : 1;
     }
 
     if (!opts.has_message) {

@@ -15,6 +15,12 @@ typedef struct {
     int version_mode;
     int has_message;
     int has_remote_arg;
+
+    const char *tag_name;
+    int tag_create_mode;
+    int tag_remove_mode;
+    int tag_push_mode;
+    int tag_remove_push_mode;
 } AcpOptions;
 
 /* error.c */
@@ -24,6 +30,7 @@ typedef enum {
     STAGE_PUSH,
     STAGE_INIT,
     STAGE_REMOTE,
+    STAGE_TAG,
     STAGE_GENERAL
 } AcpStage;
 
@@ -48,6 +55,12 @@ void parser_print_usage(void);
 int remote_save(const char *url);
 int remote_load(char *url_out, size_t size);
 int remote_is_configured(void);
+
+/* tag.c */
+int tag_create(const char *tag_name);
+int tag_remove(const char *tag_name);
+int tag_push(const char *tag_name);
+int tag_remove_push(const char *tag_name);
 const char *remote_get_git_dir_path(void);
 
 /* safety.c */

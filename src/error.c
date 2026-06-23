@@ -11,6 +11,7 @@ static const char *stage_name(AcpStage stage) {
         case STAGE_PUSH: return "git push";
         case STAGE_INIT: return "git init";
         case STAGE_REMOTE: return "remote config";
+        case STAGE_TAG: return "git tag";
         default: return "general";
     }
 }
@@ -48,6 +49,24 @@ static const char *stage_explanation(AcpStage stage, const char *raw_output) {
     }
     if (stage == STAGE_REMOTE) {
         return "There is a problem with the remote configuration. Check the .git/acp.conf file.";
+    }
+    if (stage == STAGE_TAG) {
+        if (raw_output && strstr(raw_output, "already exists")) {
+            return "That tag already exists. Use a different name, or remove the existing one first.";
+        }
+        if (raw_output && (strstr(raw_output, "Could not resolve host") || strstr(raw_output, "unable to access"))) {
+            return "Could not connect to the remote. Check your internet connection or the remote URL.";
+        }
+        if (raw_output && strstr(raw_output, "Permission denied")) {
+            return "Access denied by the remote. Check your credentials (SSH key / token) for this repository.";
+        }
+        if (raw_output && strstr(raw_output, "rejected")) {
+            return "The remote rejected this tag operation. It may already exist remotely with different history.";
+        }
+        if (raw_output && strstr(raw_output, "remote ref does not exist")) {
+            return "That tag does not exist on the remote, so there is nothing to remove there.";
+        }
+        return "Tag operation failed. Check the tag name and remote configuration.";
     }
     return "An unexpected error occurred.";
 }
