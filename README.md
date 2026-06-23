@@ -1,14 +1,8 @@
 # ACP — Add Commit Push
 
 
-[![CI](https://img.shields.io/github/actions/workflow/status/hastagaming/acp/ci.yml?branch=main&label=CI)](https://github.com/hastagaming/acp/actions/workflows/ci.yml)
-
-[![Release](https://img.shields.io/github/v/release/hastagaming/acp?label=release)](https://github.com/hastagaming/acp/releases)
-
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
-
-
-[![Termux](https://img.shields.io/badge/platform-Termux%20%7C%20Linux-success)](#installation)
+[![CI](https://img.shields.io/github/actions/workflow/status/hastagaming/acp/ci.yml?branch=main&label=CI)](https://github.com/hastagaming/acp/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/hastagaming/acp?label=release)](https://github.com/hastagaming/acp/releases)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE) [![Termux](https://img.shields.io/badge/platform-Termux%20%7C%20Linux-success)](#installation)
 
 A tiny CLI tool that turns this:
 
