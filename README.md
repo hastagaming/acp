@@ -38,7 +38,6 @@ Linux in general.
 - [Behavior details](#behavior-details)
 - [Project structure](#project-structure)
 - [Continuous integration and releases](#continuous-integration-and-releases)
-- [Publishing to TUR](#publishing-to-tur-termux-user-repository)
 
 ## Why
 
