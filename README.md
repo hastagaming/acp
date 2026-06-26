@@ -260,18 +260,11 @@ on GitHub-hosted runners:
   Both are uploaded as workflow artifacts, and on a tag push, attached
   automatically to a GitHub Release with a `.sha256` checksum each.
 
-To cut a release:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
 This builds all four binaries (`acp-termux-aarch64`,
 `acp-termux-x86_64`, `acp-linux-x86_64`, `acp-linux-aarch64`) and publishes
 them under the `v1.0.0` GitHub Release.
 
-> The Termux `aarch64`/`arm` jobs run under QEMU emulation, so they take
+> The Termux `aarch64` jobs run under QEMU emulation, so they take
 > noticeably longer than the others — that's expected, not a failure.
 
 ## License
