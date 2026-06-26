@@ -267,33 +267,12 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-This builds all five binaries (`acp-termux-aarch64`, `acp-termux-arm`,
+This builds all four binaries (`acp-termux-aarch64`,
 `acp-termux-x86_64`, `acp-linux-x86_64`, `acp-linux-aarch64`) and publishes
 them under the `v1.0.0` GitHub Release.
 
 > The Termux `aarch64`/`arm` jobs run under QEMU emulation, so they take
 > noticeably longer than the others — that's expected, not a failure.
-
-## Publishing to TUR (Termux User Repository)
-
-The Termux packaging recipe (`build.sh`) is meant to live in a separate
-repository — your [TUR](https://github.com/termux-user-repository/tur)
-fork, under `packages/acp/build.sh`. Per TUR conventions, it builds from
-the source tarball of a tagged release (not from a raw binary), since
-`TERMUX_PKG_SRCURL` must point to an extractable archive.
-
-1. Tag and push a release (see above).
-2. Compute the SHA-256 of the source tarball:
-   ```bash
-   curl -sL https://github.com/<user>/acp/archive/refs/tags/v1.0.0.tar.gz | sha256sum
-   ```
-3. Update `TERMUX_PKG_SRCURL`, `TERMUX_PKG_SHA256`, and `TERMUX_PKG_VERSION`
-   in `packages/acp/build.sh` in your TUR fork.
-4. Open a pull request against `termux-user-repository/tur`.
-
-The precompiled binaries from `build-release.yml` are a separate, faster
-install path outside of TUR (via `install-prebuilt.sh`) — they aren't used
-by the TUR recipe itself.
 
 ## License
 
