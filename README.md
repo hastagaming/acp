@@ -97,6 +97,8 @@ Every tagged release publishes ready-to-run binaries for two separate,
 | Linux desktop | `x86_64`, `aarch64` | glibc | Ubuntu, Debian, and similar |
 
 <details>
+<summary>Use the precompiled</summary>
+
 ```bash
 chmod +x install-prebuilt.sh
 ./install-prebuilt.sh
