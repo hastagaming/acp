@@ -96,10 +96,12 @@ Every tagged release publishes ready-to-run binaries for two separate,
 | Termux | `aarch64`, `arm`, `x86_64` | Bionic libc | Real Termux/Android installs |
 | Linux desktop | `x86_64`, `aarch64` | glibc | Ubuntu, Debian, and similar |
 
+<details>
 ```bash
 chmod +x install-prebuilt.sh
 ./install-prebuilt.sh
 ```
+</details>
 
 The script detects whether it's running inside Termux or a regular Linux
 environment, downloads the binary matching your architecture from the
